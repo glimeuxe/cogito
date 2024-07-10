@@ -15,3 +15,10 @@
 2024-07-10 18:57:38 - Predictions file ./predictions/pcaknn/predictions_C=500_components=500.csv generated in 15.11s.
 2024-07-10 18:58:01 - Predictions file ./predictions/pcaknn/predictions_C=1000_components=1000.csv generated in 22.87s.
 2024-07-10 18:58:59 - Predictions file ./predictions/pcaknn/predictions_C=2000_components=2000.csv generated in 57.48s.
+2024-07-10 19:41:53 - Predictions file ./predictions/logreg/predictions_β=128_τ=900_α=0.1.csv generated in 570.59s.
+2024-07-10 19:44:11 - Predictions file ./predictions/pcaknn/predictions_κ=5000.csv generated in 137.59s.
+2024-07-10 20:21:04 - Predictions file ./predictions/logreg/predictions_β=179_τ=1000_α=0.1.csv generated in 927.98s.
+2024-07-10 20:54:12 - Predictions file ./predictions/logreg/predictions_logreg_β=32_τ=1000_α=0.1.csv generated in 858.12s.
+2024-07-10 21:04:42 - Predictions file ./predictions/logreg/predictions_logreg_β=64_τ=1000_α=0.1.csv generated in 630.25s.
+2024-07-10 21:16:25 - Predictions file ./predictions/logreg/predictions_logreg_β=100_τ=1000_α=0.1.csv generated in 703.36s.
+2024-07-11 01:48:44 - Predictions file ./predictions/logreg/predictions_logreg_β=128_τ=10000_α=0.05.csv generated in 7893.21s.
