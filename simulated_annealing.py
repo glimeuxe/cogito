@@ -133,7 +133,7 @@ class SimulatedAnnealing:
 def cv_simulated_annealing(model_type, grid, T=10, T_min=0.001, α=0.9, n_trans=5, max_iter=100, max_runtime=60, cv=5, min_improvement=1e-4, patience=10):
 	model_class, _ = MODEL_TYPE_TO_CLASS_TO_HYPERPARAMETER_MAP[model_type]
 	model = model_class()
-	sa = SA(
+	sa = SimulatedAnnealing(
 		estimator=model,
 		grid=grid,
 		scoring=f1_score,
@@ -148,4 +148,7 @@ def cv_simulated_annealing(model_type, grid, T=10, T_min=0.001, α=0.9, n_trans=
 		patience=patience
 	)
 	sa.fit(X_train, y_train)
-	return sa.best_f1_, sa.best_hyperparameters_, sa.grid_f1s_, sa.runtime_
+	print(f"Best F1 score: {sa.best_f1_}")
+	print(f"Best hyperparameters: {sa.best_hyperparameters_}")
+	print(f"Grid search details: {sa.grid_f1s_}")
+	print(f"Runtime: {sa.runtime_:.2f} seconds")
