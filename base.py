@@ -112,7 +112,7 @@ MODEL_TYPE_TO_CLASS_TO_HYPERPARAMETER_MAP = {
 			))
 		],
 		"final_estimator": LogisticRegression(),
-		"cv": 2
+		"cv": 5
 	}),
 }
 
