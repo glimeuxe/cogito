@@ -2,6 +2,7 @@ import logging, os, time
 import numpy as np
 import pandas as pd
 from datetime import datetime
+from scipy.stats import uniform, randint
 
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsClassifier
@@ -25,7 +26,7 @@ MODEL_TYPE_TO_CLASS_TO_HYPERPARAMETER_MAP = {
 		"n_neighbors": 5,
 		"weights": "uniform",
 		"p": 2,
-		"metric": "minkowski"
+		"metric": "minkowski",
 	}),
 	"SKLrf": (RandomForestClassifier, {
 		"n_estimators": 100,
@@ -60,7 +61,8 @@ MODEL_TYPE_TO_CLASS_TO_HYPERPARAMETER_MAP = {
 		"max_leaf_nodes": 31,
 		"max_depth": None,
 		"min_samples_leaf": 20,
-		"random_state": None
+		"random_state": None,
+		"verbose": 1
 	}),
 	"XGBgb": (XGBClassifier, {
 		"n_estimators": 100,
