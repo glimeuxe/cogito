@@ -14,7 +14,7 @@ from catboost import CatBoostClassifier
 from sklearn.preprocessing import StandardScaler
 # Import for cross-validation and model selection.
 from joblib import Parallel, delayed
-from sklearn.model_selection import train_test_split, GridSearchCV, KFold
+from sklearn.model_selection import train_test_split, GridSearchCV, KFold, RandomizedSearchCV
 from sklearn.metrics import f1_score, classification_report
 from sklearn.model_selection._validation import _fit_and_score
 from sklearn.base import clone
