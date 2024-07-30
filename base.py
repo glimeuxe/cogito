@@ -20,9 +20,8 @@ from sklearn.model_selection import train_test_split, GridSearchCV, KFold, Rando
 from sklearn.metrics import f1_score, classification_report
 from sklearn.model_selection._validation import _fit_and_score
 from sklearn.base import clone
-# from sklearn.metrics import
 
-MODEL_TYPE_TO_CLASS_TO_HYPERPARAMETER_MAP = {
+MODEL_TYPE_TO_CLASS_TO_PARAMS_MAP = {
 	"SKLknn": (KNeighborsClassifier, {
 		"n_neighbors": 5,
 		"weights": "uniform",
@@ -62,8 +61,7 @@ MODEL_TYPE_TO_CLASS_TO_HYPERPARAMETER_MAP = {
 		"max_leaf_nodes": 31,
 		"max_depth": None,
 		"min_samples_leaf": 20,
-		"random_state": None,
-		"verbose": 1
+		"random_state": None
 	}),
 	"XGBgb": (XGBClassifier, {
 		"n_estimators": 100,
@@ -126,7 +124,7 @@ y_train = S_train["label"].values.reshape(-1, 1)
 X_test = S_test_tfidf.iloc[:, 1:].values
 
 def train_model(model_type, X_train, y_train, **kwargs):
-	model_class, default_params = MODEL_TYPE_TO_CLASS_TO_HYPERPARAMETER_MAP[model_type]
+	model_class, default_params = MODEL_TYPE_TO_CLASS_TO_PARAMS_MAP[model_type]
 	params = {**default_params, **kwargs}
 	model = model_class(**params)
 	model.fit(X_train, y_train)
@@ -136,7 +134,13 @@ def predict_model(model, X): return model.predict(X)
 
 def generate_predictions(model_type, **kwargs):
 	start_time = time.time()
-	model_class, default_params = MODEL_TYPE_TO_CLASS_TO_HYPERPARAMETER_MAP[model_type]
+	model_class, default_params = MODEL_TYPE_TO_CLASS_TO_PARAMS_MAP[model_type]
+
+	if "verbose" in default_params:
+		kwargs["verbose"] = kwargs.get("verbose", 1)
+	elif "verbosity" in default_params:
+		kwargs["verbosity"] = kwargs.get("verbosity", 1)
+
 	if model_type == "SKLstack":
 		base_estimators = kwargs.pop("base_estimators", default_params["estimators"])
 		final_estimator = kwargs.pop("final_estimator", default_params["final_estimator"])
