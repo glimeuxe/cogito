@@ -16,10 +16,10 @@ def cv_random_search(model_type, grid, k, n_iter=100):
 	print("Best hyperparameters:", best_hyperparameters)
 	print("Mean cross-validated f1 for best model:", best_f1)
 
-	for i in range(len(random_search.cv_results_["params"])):
-		print(f"Model {i + 1}:")
-		print("Hyperparameters:", random_search.cv_results_["params"][i])
-		print("Mean cross-validated f1:", random_search.cv_results_["mean_test_score"][i])
-		print()
+	# for i in range(len(random_search.cv_results_["params"])):
+	# 	print(f"Model {i + 1}:")
+	# 	print("Hyperparameters:", random_search.cv_results_["params"][i])
+	# 	print("Mean cross-validated f1:", random_search.cv_results_["mean_test_score"][i])
+	# 	print()
 
 	return best_model, best_hyperparameters
