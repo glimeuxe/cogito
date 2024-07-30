@@ -21,7 +21,7 @@ from sklearn.metrics import f1_score, classification_report
 from sklearn.model_selection._validation import _fit_and_score
 from sklearn.base import clone
 
-MODEL_TYPE_TO_CLASS_TO_PARAMS_MAP = {
+MODEL_CODE_TO_CLASS_TO_PARAMS_MAP = {
 	"SKLknn": (KNeighborsClassifier, {
 		"n_neighbors": 5,
 		"weights": "uniform",
@@ -124,7 +124,7 @@ y_train = S_train["label"].values.reshape(-1, 1)
 X_test = S_test_tfidf.iloc[:, 1:].values
 
 def train_model(model_type, X_train, y_train, **kwargs):
-	model_class, default_params = MODEL_TYPE_TO_CLASS_TO_PARAMS_MAP[model_type]
+	model_class, default_params = MODEL_CODE_TO_CLASS_TO_PARAMS_MAP[model_type]
 	params = {**default_params, **kwargs}
 	model = model_class(**params)
 	model.fit(X_train, y_train)
@@ -134,7 +134,7 @@ def predict_model(model, X): return model.predict(X)
 
 def generate_predictions(model_type, **kwargs):
 	start_time = time.time()
-	model_class, default_params = MODEL_TYPE_TO_CLASS_TO_PARAMS_MAP[model_type]
+	model_class, default_params = MODEL_CODE_TO_CLASS_TO_PARAMS_MAP[model_type]
 
 	if "verbose" in default_params:
 		kwargs["verbose"] = kwargs.get("verbose", 1)

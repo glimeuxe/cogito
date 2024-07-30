@@ -1,7 +1,7 @@
 from base import *
 
 def cv_grid_search(model_type, grid, k):
-	model_class, default_params = MODEL_TYPE_TO_CLASS_TO_PARAMS_MAP[model_type]
+	model_class, default_params = MODEL_CODE_TO_CLASS_TO_PARAMS_MAP[model_type]
 
 	if model_type == "SKLstack": grid = {"final_estimator__" + k: v for k, v in grid.items()}
 
