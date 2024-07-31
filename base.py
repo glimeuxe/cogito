@@ -93,20 +93,23 @@ MODEL_CODE_TO_CLASS_TO_PARAMS_MAP = {
 	"SKLstack": (StackingClassifier, {
 		"estimators": [
 			("SKLhgb", HistGradientBoostingClassifier(
-				learning_rate=0.1,
-				max_iter=1,
+				learning_rate=0.08,
+				max_iter=480,
+				max_leaf_nodes=75,
+				min_samples_leaf=15,
+				random_state=7
 			)),
-			("XGBgb", XGBClassifier(
-				n_estimators=1,
-				max_depth=1,
-				learning_rate=0.1,
-				use_label_encoder=False,
-				eval_metric="logloss"
-			)),
+			# ("XGBgb", XGBClassifier(
+			# 	n_estimators=1,
+			# 	max_depth=1,
+			# 	learning_rate=0.1,
+			# 	use_label_encoder=False,
+			# 	eval_metric="logloss"
+			# )),
 			("CBgb", CatBoostClassifier(
 				learning_rate=0.1,
-				n_estimators=1,
-				max_depth=1
+				n_estimators=600,
+				max_depth=10
 			))
 		],
 		"final_estimator": LogisticRegression(),
