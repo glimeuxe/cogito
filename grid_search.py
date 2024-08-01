@@ -22,5 +22,4 @@ def cv_grid_search(model_type, grid, k):
 	# 	print("Hyperparameters:", grid_search.cv_results_["params"][i])
 	# 	print("Mean cross-validated f1:", grid_search.cv_results_["mean_test_score"][i])
 	# 	print()
-
 	return best_model, best_hyperparameters

@@ -27,7 +27,7 @@ DEFAULT_MODEL_CLASS_PARAMETERS = {
 		"n_neighbors": 5,
 		"weights": "uniform",
 		"p": 2,
-		"metric": "minkowski",
+		"metric": "minkowski"
 	}),
 	"SKLrf": (RandomForestClassifier, {
 		"n_estimators": 100,
@@ -36,13 +36,15 @@ DEFAULT_MODEL_CLASS_PARAMETERS = {
 		"min_samples_split": 2,
 		"min_samples_leaf": 1,
 		"max_leaf_nodes": None,
-		"random_state": None
+		"random_state": None,
+		"verbose": 3
 	}),
 	"SKLsvm": (SVC, {
 		"C": 1.0,
 		"kernel": "rbf",
 		"degree": 3,
 		"gamma": "scale",
+		"verbose": 3,
 		"max_iter": -1,
 		"random_state": None
 	}),
@@ -51,17 +53,8 @@ DEFAULT_MODEL_CLASS_PARAMETERS = {
 		"tol": 0.0001,
 		"C": 1.0,
 		"random_state": None,
-		"max_iter": 100
-	}),
-	"SKLgb": (GradientBoostingClassifier, {
-		"learning_rate": 0.1,
-		"n_estimators": 100,
-		"subsample": 1.0,
-		"min_samples_split": 2,
-		"min_samples_leaf": 1,
-		"max_depth": 3,
-		"random_state": None,
-		"max_leaf_nodes": None
+		"max_iter": 100,
+		"verbose": 3
 	}),
 	"SKLhgb": (HistGradientBoostingClassifier, {
 		"learning_rate": 0.1,
@@ -70,12 +63,14 @@ DEFAULT_MODEL_CLASS_PARAMETERS = {
 		"max_depth": None,
 		"min_samples_leaf": 20,
 		"l2_regularization": 0.0,
+		"verbose": 3,
 		"random_state": None
 	}),
 	"XGBgb": (XGBClassifier, {
 		"n_estimators": 100,
 		"max_depth": 6,
 		"learning_rate": 0.3,
+		"verbosity": 3,
 		"objective": "binary:logistic",
 		"booster": "gbtree",
 		"subsample": 1.0,
@@ -96,7 +91,7 @@ DEFAULT_MODEL_CLASS_PARAMETERS = {
 OPTIMAL_G_MODEL_PARAMETERS = {
 	"SKLlogreg": {
 		"penalty": "l2",
-		"C": 5.6 # 5.6
+		"C": 5.6
 	},
 	"SKLknn": {
 		"n_neighbors": 2, # 3
