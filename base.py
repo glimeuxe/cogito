@@ -14,7 +14,7 @@ from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.preprocessing import StandardScaler
 from joblib import Parallel, delayed
 from scipy.stats import uniform, randint
-from sklearn.model_selection import train_test_split, GridSearchCV, KFold, RandomizedSearchCV
+from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV, KFold, RandomizedSearchCV
 from sklearn.metrics import f1_score, classification_report
 from sklearn.model_selection._validation import _fit_and_score
 from sklearn.base import clone
@@ -23,6 +23,7 @@ TOP_ESTIMATOR_1 = ("SKLlogreg", LogisticRegression(
 	C=0.64,
 	class_weight="balanced"
 ))
+
 TOP_ESTIMATOR_2 = ("SKLet", ExtraTreesClassifier(
 	n_estimators=150,
 	criterion="gini",
@@ -34,16 +35,19 @@ TOP_ESTIMATOR_2 = ("SKLet", ExtraTreesClassifier(
 	ccp_alpha=0.00001,
 	max_samples=0.9
 ))
+
 TOP_ESTIMATOR_3 = ("SKLmnb", MultinomialNB(
 	alpha=1.38,
 	fit_prior=False
 ))
+
 TOP_ESTIMATOR_4 = ("CBgb", CatBoostClassifier(
 	learning_rate=0.15,
 	max_depth=12,
 	n_estimators=800,
 	reg_lambda=3.2
 ))
+
 TOP_ESTIMATOR_5 = ("XGBgb", XGBClassifier(
 	n_estimators=800,
 	max_depth=16,
