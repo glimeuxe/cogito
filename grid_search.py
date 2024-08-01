@@ -2,7 +2,11 @@ from base import *
 
 def cv_grid_search(model_type, grid, k):
 	model_class, default_params = MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS[model_type]
-	if model_type == "SKLstack": grid = {"final_estimator__" + k: v for k, v in grid.items()}
+	if model_type.startswith("SKLstack"):
+		grid = {
+			("final_estimator__" + k if k in LogisticRegression().get_params() else k): v
+			for k, v in grid.items()
+		}
 	model = model_class(**default_params)
 	grid_search = GridSearchCV(estimator=model, param_grid=grid, cv=k, scoring="f1", verbose=3)
 	grid_search.fit(X_train, y_train.ravel())

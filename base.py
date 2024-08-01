@@ -5,10 +5,11 @@ from datetime import datetime
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import LinearSVC
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier, HistGradientBoostingClassifier, StackingClassifier
 from xgboost import XGBClassifier
 from catboost import CatBoostClassifier
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier
 # Import for pre-processing, cross-validation, and model selection.
 from sklearn.preprocessing import StandardScaler
 from joblib import Parallel, delayed
@@ -18,13 +19,41 @@ from sklearn.metrics import f1_score, classification_report
 from sklearn.model_selection._validation import _fit_and_score
 from sklearn.base import clone
 
+TOP_ESTIMATOR_1 = ("SKLlogreg", LogisticRegression(
+	C=0.64,
+	class_weight="balanced"
+))
+TOP_ESTIMATOR_2 = ("SKLet", ExtraTreesClassifier(
+	n_estimators=150,
+	criterion="gini",
+	max_depth=600,
+	min_samples_split=160,
+	min_impurity_decrease=0.00001,
+	bootstrap=True,
+	class_weight="balanced_subsample",
+	ccp_alpha=0.00001,
+	max_samples=0.9
+))
+TOP_ESTIMATOR_3 = ("SKLmnb", MultinomialNB(
+	alpha=1.38,
+	fit_prior=False
+))
+TOP_ESTIMATOR_4 = ("CBgb", CatBoostClassifier(
+	learning_rate=0.15,
+	max_depth=12,
+	n_estimators=800,
+	reg_lambda=3.2
+))
+TOP_ESTIMATOR_5 = ("XGBgb", XGBClassifier(
+	n_estimators=800,
+	max_depth=16,
+	learning_rate=0.1,
+	subsample=0.8,
+	reg_alpha=0.1,
+	reg_lambda=2
+))
+
 MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
-	"SKLknn": (KNeighborsClassifier, {
-		"n_neighbors": 5,
-		"weights": "uniform",
-		"p": 2,
-		"metric": "minkowski"
-	}),
 	"SKLet": (ExtraTreesClassifier, {
 		"n_estimators": 100,
 		"criterion": "gini",
@@ -45,19 +74,25 @@ MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 	"SKLlsvm": (LinearSVC, {
 		"penalty": "l2",
 		"loss": "squared_hinge",
+		"dual": "auto",
 		"tol": 0.0001,
 		"C": 1.0,
 		"verbose": 0,
 		"random_state": None,
 		"max_iter": 1000
 	}),
+	"SKLmnb": (MultinomialNB, {
+		"alpha": 1.0,
+		"fit_prior": True
+	}),
 	"SKLlogreg": (LogisticRegression, {
 		"penalty": "l2",
 		"tol": 0.0001,
 		"C": 1.0,
+		"class_weight": None,
 		"random_state": None,
 		"max_iter": 100,
-		"verbose": 3
+		"verbose": 0
 	}),
 	"SKLhgb": (HistGradientBoostingClassifier, {
 		"learning_rate": 0.1,
@@ -89,40 +124,23 @@ MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 		"reg_lambda": None,
 		"random_state": None
 	}),
-	"SKLstack": (StackingClassifier, {
-		"estimators": [
-			("SKLhgb", HistGradientBoostingClassifier(
-				learning_rate=0.08564,
-				max_iter=479,
-				max_leaf_nodes=75,
-				max_depth=81,
-				min_samples_leaf=15,
-				random_state=7,
-			)),
-			("XGBgb", XGBClassifier(
-				n_estimators=800,
-				max_depth=16,
-				learning_rate=0.1,
-				subsample=0.8,
-				reg_alpha=0.1,
-				reg_lambda=2
-			)),
-			("CBgb", CatBoostClassifier(
-				learning_rate=0.1,
-				max_depth=12,
-				n_estimators=800,
-				reg_lambda=None
-			)),
-			("SKLlogreg", LogisticRegression(
-				penalty="l2",
-				C=5.6,
-				max_iter=400
-			)),
-			("SKLknn", KNeighborsClassifier(
-				n_neighbors=3,
-				weights="distance"
-			))
-		],
+	"SKLstack1": (StackingClassifier, {
+		"estimators": [TOP_ESTIMATOR_1, TOP_ESTIMATOR_2],
+		"final_estimator": LogisticRegression(),
+		"cv": 5
+	}),
+	"SKLstack2": (StackingClassifier, {
+		"estimators": [TOP_ESTIMATOR_1, TOP_ESTIMATOR_2, TOP_ESTIMATOR_3],
+		"final_estimator": LogisticRegression(),
+		"cv": 5
+	}),
+	"SKLstack3": (StackingClassifier, {
+		"estimators": [TOP_ESTIMATOR_1, TOP_ESTIMATOR_2, TOP_ESTIMATOR_3, TOP_ESTIMATOR_4],
+		"final_estimator": LogisticRegression(),
+		"cv": 5
+	}),
+	"SKLstack4": (StackingClassifier, {
+		"estimators": [TOP_ESTIMATOR_1, TOP_ESTIMATOR_2, TOP_ESTIMATOR_3, TOP_ESTIMATOR_4, TOP_ESTIMATOR_5],
 		"final_estimator": LogisticRegression(),
 		"cv": 5
 	})
@@ -151,13 +169,13 @@ def generate_predictions(model_type, **kwargs):
 	model_class, default_params = MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS[model_type]
 	params = {**default_params, **kwargs}
 
-	if model_type == "SKLstack":
+	if model_type.startswith("SKLstack"):
 		estimators = params.pop("estimators", default_params["estimators"])
+		final_estimator = params.pop("final_estimator", default_params["final_estimator"])
 		final_estimator_params = {
 			key: params.pop(key) for key in kwargs if key in LogisticRegression().get_params()
 		}
-		final_estimator = params.pop("final_estimator", default_params["final_estimator"])
-		if isinstance(final_estimator, LogisticRegression): final_estimator.set_params(**final_estimator_params)
+		final_estimator.set_params(**final_estimator_params)
 		model = model_class(estimators=estimators, final_estimator=final_estimator, **params)
 	else:
 		model = model_class(**params)
