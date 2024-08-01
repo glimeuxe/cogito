@@ -86,24 +86,24 @@ MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 		"estimators": [
 			("SKLhgb", HistGradientBoostingClassifier(
 				learning_rate=0.08564,
-				max_iter=1, # 479
+				max_iter=479,
 				max_leaf_nodes=75,
 				max_depth=81,
 				min_samples_leaf=15,
 				random_state=7,
 			)),
 			("XGBgb", XGBClassifier(
-				n_estimators=2, # 800
-				max_depth=4, # 16
-				learning_rate=0.3, # 0.1
-				subsample=1, # 0.8
+				n_estimators=800,
+				max_depth=16,
+				learning_rate=0.1,
+				subsample=0.8,
 				reg_alpha=0.1,
 				reg_lambda=2
 			)),
 			("CBgb", CatBoostClassifier(
-				learning_rate=0.3, # 0.1
-				max_depth=6, # 12
-				n_estimators=2, # 800
+				learning_rate=0.1,
+				max_depth=12,
+				n_estimators=800,
 				reg_lambda=None
 			)),
 			("SKLlogreg", LogisticRegression(
