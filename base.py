@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier, HistGradientBoostingClassifier, StackingClassifier
 from xgboost import XGBClassifier
 from catboost import CatBoostClassifier
@@ -37,19 +37,19 @@ MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 		"min_impurity_decrease": 0.0,
 		"bootstrap": False,
 		"random_state": None,
-		"verbose": 1,
+		"verbose": 0,
 		"class_weight": None,
 		"ccp_alpha": 0.0,
 		"max_samples": None
 	}),
-	"SKLsvm": (SVC, {
+	"SKLlsvm": (LinearSVC, {
+		"penalty": "l2",
+		"loss": "squared_hinge",
+		"tol": 0.0001,
 		"C": 1.0,
-		"kernel": "rbf",
-		"degree": 3,
-		"gamma": "scale",
-		"verbose": 3,
-		"max_iter": -1,
-		"random_state": None
+		"verbose": 0,
+		"random_state": None,
+		"max_iter": 1000
 	}),
 	"SKLlogreg": (LogisticRegression, {
 		"penalty": "l2",
