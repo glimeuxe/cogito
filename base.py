@@ -33,7 +33,7 @@ MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 		"min_samples_leaf": 1,
 		"max_leaf_nodes": None,
 		"random_state": None,
-		"verbose": 3
+		"verbose": 1
 	}),
 	"SKLsvm": (SVC, {
 		"C": 1.0,
