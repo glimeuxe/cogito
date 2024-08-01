@@ -1,7 +1,7 @@
 from base import *
 
 def cv_random_search(model_type, grid, k, n_iter=100):
-	model_class, default_params = MODEL_CODE_TO_CLASS_TO_PARAMS_MAP[model_type]
+	model_class, default_params = DEFAULT_MODEL_CLASS_PARAMETERS[model_type]
 
 	if model_type == "SKLstack": grid = {"final_estimator__" + k: v for k, v in grid.items()}
 
@@ -21,5 +21,4 @@ def cv_random_search(model_type, grid, k, n_iter=100):
 	# 	print("Hyperparameters:", random_search.cv_results_["params"][i])
 	# 	print("Mean cross-validated f1:", random_search.cv_results_["mean_test_score"][i])
 	# 	print()
-
 	return best_model, best_hyperparameters
