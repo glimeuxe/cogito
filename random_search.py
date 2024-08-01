@@ -1,6 +1,6 @@
 from base import *
 
-def cv_random_search(model_type, grid, k, n_iter=100):
+def cv_random_search(model_type, grid, k, n_iter=2):
 	model_class, default_params = DEFAULT_MODEL_CLASS_PARAMETERS[model_type]
 	if model_type == "SKLstack":
 		grid = {f"final_estimator__{key}": value for key, value in grid.items()}
