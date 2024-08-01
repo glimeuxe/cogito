@@ -113,14 +113,14 @@ OPTIMAL_G_MODEL_PARAMETERS = {
 	"XGBgb": {
 		"n_estimators": 2, # 800
 		"max_depth": 4, # 16
-		"learning_rate": 0.1,
+		"learning_rate": 0.3, # 0.1
 		"subsample": 1, # 0.8
 		"reg_alpha": 0.1,
 		"reg_lambda": 2
 	},
 	"CBgb": {
-		"learning_rate": 0.2, # 0.1
-		"max_depth": 12,
+		"learning_rate": 0.3, # 0.1
+		"max_depth": 6, # 12
 		"n_estimators": 2, # 800
 		"reg_lambda": None,
 		"random_state": None
@@ -151,8 +151,6 @@ def predict_model(model, X): return model.predict(X)
 def generate_predictions(model_type, **kwargs):
 	start_time = time.time()
 	model_class, default_params = DEFAULT_MODEL_CLASS_PARAMETERS[model_type]
-	if "verbose" in default_params: kwargs["verbose"] = kwargs.get("verbose", 1)
-	elif "verbosity" in default_params: kwargs["verbosity"] = kwargs.get("verbosity", 1)
 	model = train_model(model_type, np.array(X_train), np.array(y_train), **kwargs)
 	model.fit(X_train, y_train.ravel())
 	predictions = predict_model(model, np.array(X_test))
@@ -179,13 +177,13 @@ g2_estimators = [
 final_estimator = LogisticRegression(**DEFAULT_MODEL_CLASS_PARAMETERS["SKLlogreg"][1])
 
 def train_final_model():
-	g1_predictions = np.column_stack([train_model(model_name, X_train, y_train).predict(X_train) for model_name, _ in g1_estimators])
+	g1_predictions = np.column_stack([train_model(model_name, X_train, y_train).predict_proba(X_train)[:, 1] for model_name, _ in g1_estimators])
 	g2_predictions = np.column_stack([train_model(model_name, g1_predictions, y_train).predict(g1_predictions) for model_name, _ in g2_estimators])
 	final_model = StackingClassifier(
 		estimators=g2_estimators,
 		final_estimator=final_estimator,
-		passthrough=False,
-		cv=5
+		cv=2,
+		verbose=1
 	)
 	final_model.fit(g2_predictions, y_train.ravel())
 	return final_model

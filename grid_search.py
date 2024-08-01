@@ -4,10 +4,9 @@ def cv_grid_search(model_type, grid, k):
 	model_class, default_params = DEFAULT_MODEL_CLASS_PARAMETERS[model_type]
 	if model_type == "SKLstack":
 		grid = {f"final_estimator__{key}": value for key, value in grid.items()}
-	model = model_class(**default_params)
-	if model_type == "SKLstack":
-		final_estimator = LogisticRegression()
-		model = model_class(final_estimator=final_estimator)
+		model = model_class(final_estimator=LogisticRegression(), **default_params)
+	else:
+		model = model_class(**default_params)
 	grid_search = GridSearchCV(estimator=model, param_grid=grid, cv=k, scoring="f1", verbose=3)
 	grid_search.fit(X_train, y_train.ravel())
 
