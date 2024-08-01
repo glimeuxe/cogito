@@ -18,11 +18,7 @@ from sklearn.metrics import f1_score, classification_report
 from sklearn.model_selection._validation import _fit_and_score
 from sklearn.base import clone
 
-DEFAULT_MODEL_CLASS_PARAMETERS = {
-	"SKLstack": (lambda final_estimator=None,
-		**kwargs: StackingClassifier(
-		estimators=g2_estimators, final_estimator=final_estimator, **kwargs
-	), {}),
+MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 	"SKLknn": (KNeighborsClassifier, {
 		"n_neighbors": 5,
 		"weights": "uniform",
@@ -85,41 +81,44 @@ DEFAULT_MODEL_CLASS_PARAMETERS = {
 		"n_estimators": None,
 		"reg_lambda": None,
 		"random_state": None
+	}),
+	"SKLstack": (StackingClassifier, {
+		"estimators": [
+			("SKLhgb", HistGradientBoostingClassifier(
+				learning_rate=0.08564,
+				max_iter=1, # 479
+				max_leaf_nodes=75,
+				max_depth=81,
+				min_samples_leaf=15,
+				random_state=7,
+			)),
+			("XGBgb", XGBClassifier(
+				n_estimators=2, # 800
+				max_depth=4, # 16
+				learning_rate=0.3, # 0.1
+				subsample=1, # 0.8
+				reg_alpha=0.1,
+				reg_lambda=2
+			)),
+			("CBgb", CatBoostClassifier(
+				learning_rate=0.3, # 0.1
+				max_depth=6, # 12
+				n_estimators=2, # 800
+				reg_lambda=None
+			)),
+			("SKLlogreg", LogisticRegression(
+				penalty="l2",
+				C=5.6,
+				max_iter=400
+			)),
+			("SKLknn", KNeighborsClassifier(
+				n_neighbors=3,
+				weights="distance"
+			))
+		],
+		"final_estimator": LogisticRegression(),
+		"cv": 5
 	})
-}
-
-OPTIMAL_G_MODEL_PARAMETERS = {
-	"SKLlogreg": {
-		"penalty": "l2",
-		"C": 5.6
-	},
-	"SKLknn": {
-		"n_neighbors": 2, # 3
-		"weights": "distance"
-	},
-	"SKLhgb": {
-		"learning_rate": 0.1, # 0.08564
-		# "max_iter": 479,
-		# "max_leaf_nodes": 75,
-		# "max_depth": 81,
-		# "min_samples_leaf": 15,
-		"random_state": None, # 7
-	},
-	"XGBgb": {
-		"n_estimators": 2, # 800
-		"max_depth": 4, # 16
-		"learning_rate": 0.3, # 0.1
-		"subsample": 1, # 0.8
-		"reg_alpha": 0.1,
-		"reg_lambda": 2
-	},
-	"CBgb": {
-		"learning_rate": 0.3, # 0.1
-		"max_depth": 6, # 12
-		"n_estimators": 2, # 800
-		"reg_lambda": None,
-		"random_state": None
-	},
 }
 
 S_train = pd.read_csv("./data/train.csv")
@@ -131,13 +130,10 @@ X_train = S_train_tfidf.iloc[:, 2:].values
 y_train = S_train["label"].values.reshape(-1, 1)
 X_test = S_test_tfidf.iloc[:, 1:].values
 
-def train_model(model_type, X_train, y_train, **kwargs):
-	model_class, default_params = DEFAULT_MODEL_CLASS_PARAMETERS[model_type]
-	if callable(model_class):
-		model = model_class()
-	else:
-		params = {**default_params, **kwargs}
-		model = model_class(**params)
+def train_model(model_type, **kwargs):
+	model_class, default_params = MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS[model_type]
+	params = {**default_params, **kwargs}
+	model = model_class(**params)
 	model.fit(X_train, y_train)
 	return model
 
@@ -145,40 +141,26 @@ def predict_model(model, X): return model.predict(X)
 
 def generate_predictions(model_type, **kwargs):
 	start_time = time.time()
-	model_class, default_params = DEFAULT_MODEL_CLASS_PARAMETERS[model_type]
-	model = train_model(model_type, np.array(X_train), np.array(y_train), **kwargs)
-	model.fit(X_train, y_train.ravel())
-	predictions = predict_model(model, np.array(X_test))
+	model_class, default_params = MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS[model_type]
+	params = {**default_params, **kwargs}
+
+	if model_type == "SKLstack":
+		estimators = params.pop("estimators", default_params["estimators"])
+		final_estimator_params = {
+			key: params.pop(key) for key in kwargs if key in LogisticRegression().get_params()
+		}
+		final_estimator = params.pop("final_estimator", default_params["final_estimator"])
+		if isinstance(final_estimator, LogisticRegression): final_estimator.set_params(**final_estimator_params)
+		model = model_class(estimators=estimators, final_estimator=final_estimator, **params)
+	else:
+		model = model_class(**params)
+
+	model.fit(X_train, y_train)
+	predictions = predict_model(model, X_test)
 	output_dir = f"./predictions/{model_type}/"
 	os.makedirs(output_dir, exist_ok=True)
 	file_name = os.path.join(output_dir, "predictions.csv")
 	pd.DataFrame({"id": S_test["id"], "label": predictions}).to_csv(file_name, index=False)
 	end_time = time.time()
-
 	logging.info(f"Predictions file {file_name} generated in {end_time - start_time:.2f}s.")
 	print(f"Predictions file {file_name} generated in {end_time - start_time:.2f}s.")
-
-g1_estimators = [
-	("SKLlogreg", LogisticRegression(**OPTIMAL_G_MODEL_PARAMETERS["SKLlogreg"])),
-	("SKLknn", KNeighborsClassifier(**OPTIMAL_G_MODEL_PARAMETERS["SKLknn"]))
-]
-
-g2_estimators = [
-	("SKLhgb", HistGradientBoostingClassifier(**OPTIMAL_G_MODEL_PARAMETERS["SKLhgb"])),
-	("XGBgb", XGBClassifier(**OPTIMAL_G_MODEL_PARAMETERS["XGBgb"])),
-	("CBgb", CatBoostClassifier(**OPTIMAL_G_MODEL_PARAMETERS["CBgb"]))
-]
-
-final_estimator = LogisticRegression(**DEFAULT_MODEL_CLASS_PARAMETERS["SKLlogreg"][1])
-
-def train_final_model():
-	g1_predictions = np.column_stack([train_model(model_name, X_train, y_train).predict_proba(X_train)[:, 1] for model_name, _ in g1_estimators])
-	g2_predictions = np.column_stack([train_model(model_name, g1_predictions, y_train).predict(g1_predictions) for model_name, _ in g2_estimators])
-	final_model = StackingClassifier(
-		estimators=g2_estimators,
-		final_estimator=final_estimator,
-		cv=2,
-		verbose=1
-	)
-	final_model.fit(g2_predictions, y_train.ravel())
-	return final_model
