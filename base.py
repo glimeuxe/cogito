@@ -1,4 +1,4 @@
-import logging, os, time
+import logging, os, time, glob
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -10,7 +10,6 @@ from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier, H
 from xgboost import XGBClassifier
 from catboost import CatBoostClassifier
 from sklearn.linear_model import LogisticRegression, SGDClassifier
-# Import for pre-processing, cross-validation, and model selection.
 from sklearn.preprocessing import StandardScaler
 from joblib import Parallel, delayed
 from scipy.stats import uniform, randint
@@ -24,7 +23,18 @@ TOP_ESTIMATOR_1 = ("SKLlogreg", LogisticRegression(
 	class_weight="balanced"
 ))
 
-TOP_ESTIMATOR_2 = ("SKLet", ExtraTreesClassifier(
+TOP_ESTIMATOR_2 = ("CBgb", CatBoostClassifier(
+	iterations=900,
+	learning_rate=0.1,
+	depth=6,
+	rsm=0.8,
+	auto_class_weights="Balanced",
+	random_strength=1.2,
+	bootstrap_type="MVS",
+	subsample=0.8
+))
+
+TOP_ESTIMATOR_3 = ("SKLet", ExtraTreesClassifier(
 	n_estimators=150,
 	criterion="gini",
 	max_depth=600,
@@ -36,25 +46,18 @@ TOP_ESTIMATOR_2 = ("SKLet", ExtraTreesClassifier(
 	max_samples=0.9
 ))
 
-TOP_ESTIMATOR_3 = ("SKLmnb", MultinomialNB(
+TOP_ESTIMATOR_4 = ("SKLmnb", MultinomialNB(
 	alpha=1.38,
 	fit_prior=False
 ))
 
-TOP_ESTIMATOR_4 = ("CBgb", CatBoostClassifier(
-	learning_rate=0.15,
-	max_depth=12,
-	n_estimators=800,
-	reg_lambda=3.2
-))
-
-TOP_ESTIMATOR_5 = ("XGBgb", XGBClassifier(
-	n_estimators=800,
-	max_depth=16,
-	learning_rate=0.1,
-	subsample=0.8,
-	reg_alpha=0.1,
-	reg_lambda=2
+TOP_ESTIMATOR_5 = ("SKLlsvm", LinearSVC(
+	penalty="l2",
+	loss="hinge",
+	dual=True,
+	C=0.3425,
+	class_weight="balanced",
+	max_iter=2000
 ))
 
 MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
@@ -81,6 +84,7 @@ MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 		"dual": "auto",
 		"tol": 0.0001,
 		"C": 1.0,
+		"class_weight": None,
 		"verbose": 0,
 		"random_state": None,
 		"max_iter": 1000
@@ -111,10 +115,12 @@ MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 	"XGBgb": (XGBClassifier, {
 		"n_estimators": 100,
 		"max_depth": 6,
+		"max_leaves": 0,
 		"learning_rate": 0.3,
-		"verbosity": 3,
+		"verbosity": 1,
 		"objective": "binary:logistic",
 		"booster": "gbtree",
+		"gamma": 0,
 		"subsample": 1.0,
 		"reg_alpha": 0,
 		"reg_lambda": 1,
@@ -131,34 +137,21 @@ MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 		"random_strength": None,
 		"boosting_type": "Plain",
 		"bootstrap_type": None,
-        "subsample": None,
+		"subsample": None,
+		"grow_policy": None,
+		"penalties_coefficient": None
 	}),
-	"SKLstack1": (StackingClassifier, {
-		"estimators": [TOP_ESTIMATOR_1, TOP_ESTIMATOR_2],
-		"final_estimator": LogisticRegression(),
-		"cv": 5
-	}),
-	"SKLstack2": (StackingClassifier, {
-		"estimators": [TOP_ESTIMATOR_1, TOP_ESTIMATOR_2, TOP_ESTIMATOR_3],
-		"final_estimator": LogisticRegression(),
-		"cv": 5
-	}),
-	"SKLstack3": (StackingClassifier, {
-		"estimators": [TOP_ESTIMATOR_1, TOP_ESTIMATOR_2, TOP_ESTIMATOR_3, TOP_ESTIMATOR_4],
-		"final_estimator": LogisticRegression(),
-		"cv": 5
-	}),
-	"SKLstack4": (StackingClassifier, {
-		"estimators": [TOP_ESTIMATOR_1, TOP_ESTIMATOR_2, TOP_ESTIMATOR_3, TOP_ESTIMATOR_4, TOP_ESTIMATOR_5],
+	"SKLstack": (StackingClassifier, {
+		"estimators": [TOP_ESTIMATOR_2, TOP_ESTIMATOR_3, TOP_ESTIMATOR_4],
 		"final_estimator": LogisticRegression(),
 		"cv": 5
 	})
 }
 
-S_train = pd.read_csv("./data/train.csv")
-S_train_tfidf = pd.read_csv("./data/train_tfidf_features.csv")
-S_test = pd.read_csv("./data/test.csv")
-S_test_tfidf = pd.read_csv("./data/test_tfidf_features.csv")
+S_train = pd.read_csv("train.csv")
+S_train_tfidf = pd.read_csv("train_tfidf_features.csv")
+S_test = pd.read_csv("test.csv")
+S_test_tfidf = pd.read_csv("test_tfidf_features.csv")
 
 X_train = S_train_tfidf.iloc[:, 2:].values
 y_train = S_train["label"].values.reshape(-1, 1)
