@@ -121,12 +121,17 @@ MODEL_TO_CLASS_TO_DEFAULT_PARAMETERS = {
 		"random_state": None
 	}),
 	"CBgb": (CatBoostClassifier, {
+		"iterations": None,
 		"learning_rate": None,
-		"subsample": None,
-		"max_depth": None,
-		"n_estimators": None,
-		"reg_lambda": None,
-		"random_state": None
+		"depth": None,
+		"l2_leaf_reg": None,
+		"rsm": None,
+		"random_seed": None,
+		"auto_class_weights": None,
+		"random_strength": None,
+		"boosting_type": "Plain",
+		"bootstrap_type": None,
+        "subsample": None,
 	}),
 	"SKLstack1": (StackingClassifier, {
 		"estimators": [TOP_ESTIMATOR_1, TOP_ESTIMATOR_2],
